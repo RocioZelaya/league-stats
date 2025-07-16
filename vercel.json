@@ -1,0 +1,13 @@
+{
+  "build": {
+    "env": {
+      "PYTHON_VERSION": "3.9.18"
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/fetch-data",
+      "dest": "/api/fetch_riot_data.py"
+    }
+  ]
+}
