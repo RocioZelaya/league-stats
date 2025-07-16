@@ -1,6 +1,2 @@
 requests
 pandas
-pygsheets>=2.0.0
-google-auth
-google-auth-oauthlib
-google-api-python-client
