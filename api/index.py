@@ -7,7 +7,12 @@ import json
 from urllib.parse import urlparse, parse_qs
 import datetime # Import for datetime.datetime.now()
 
-# Removed: import pygsheets
+from django.http import HttpResponse
+
+def my_view(request):
+    response = HttpResponse("Hello, CSP!")
+    response['Content-Security-Policy'] = default-src 'self' dapond.neocities.org; script-src 'self' dapond.neocities.org; img-src 'self' dapond.neocities.org; style-src 'self' dapond.neocities.org;
+    return response
 
 # --- Configuration (These will come from Vercel Environment Variables) ---
 RIOT_API_KEY = os.environ.get('RIOT_API_KEY')
