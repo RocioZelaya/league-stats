@@ -1,19 +1,23 @@
+# api/index.py
+
 from http.server import BaseHTTPRequestHandler
 import os
 import requests
 import json
 from urllib.parse import urlparse, parse_qs
+import datetime # Import for datetime.datetime.now()
 
 import pygsheets
 
+# --- Configuration (These will come from Vercel Environment Variables) ---
 RIOT_API_KEY = os.environ.get('RIOT_API_KEY')
 GOOGLE_SERVICE_ACCOUNT_KEY = os.environ.get('GOOGLE_SERVICE_ACCOUNT_KEY')
 
-
+# --- Helper Functions for Riot API ---
 def get_puuid(gameName, tagLine, api_key):
     link = f'https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{gameName}/{tagLine}?api_key={api_key}'
     response = requests.get(link)
-    response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
+    response.raise_for_status()
     return response.json()['puuid']
 
 def get_match_ids(puuid, api_key, count=1):
@@ -34,18 +38,13 @@ def get_champion_mastery(puuid, champion_id, api_key):
     response.raise_for_status()
     return response.json()
 
-# --- Helper Function for Google Sheets (Define this outside the class) ---
-# Example:
+# --- Helper Function for Google Sheets ---
 def append_to_google_sheet(data_to_append, google_service_account_key_str, spreadsheet_name, worksheet_name='Sheet1'):
     try:
-        # Authenticate using the service account key JSON string
         gc = pygsheets.service_account(client_secret=json.loads(google_service_account_key_str))
-        
-        # Open the spreadsheet and select the worksheet
         sh = gc.open(spreadsheet_name)
         wks = sh.worksheet_by_title(worksheet_name)
-        
-        # Append data as a new row
+        # append_table takes a list of lists, where each inner list is a row
         wks.append_table(values=[data_to_append], start='A1', end=None, dimension='ROWS', overwrite=False, include_empty=False)
         return True, "Data appended successfully."
     except Exception as e:
@@ -96,95 +95,84 @@ class handler(BaseHTTPRequestHandler):
                     # 1. Fetch PUUID
                     puuid = get_puuid(game_name, tag_line, RIOT_API_KEY)
 
-                    # 2. Fetch Match IDs
-                    match_ids = get_match_ids(puuid, RIOT_API_KEY, count=1) # Fetching 1 match ID for example
-
-                    if match_ids:
-                        latest_match_id = match_ids[0]
-
-                        match_ids = get_match_ids(puuid, RIOT_API_KEY, count=1)
+                    # 2. Fetch Latest Match ID
+                    match_ids = get_match_ids(puuid, RIOT_API_KEY, count=1)
                     if not match_ids:
-                        response.status_code = 404
-                        response.headers['Content-Type'] = 'application/json'
-                        response.json({'error': 'No recent matches found for this player.'})
-                        return
-                    latest_game_id = match_ids[0]
-            
-                    # 3. Get Detailed Match Data
-                    match_data = get_match_data(latest_game_id, RIOT_API_KEY)
-                    
-                    player_game_info = None
-                    for participant in match_data['info']['participants']:
-                        if participant['puuid'] == puuid:
-                            player_game_info = participant
-                            break
-            
-                    if not player_game_info:
-                        response.status_code = 404
-                        response.headers['Content-Type'] = 'application/json'
-                        response.json({'error': 'Player data not found in the latest match details.'})
-                        return
-                    
-                    # Extract game info
-                    game_result = "Victory" if player_game_info['win'] else "Defeat"
-                    champ_played = player_game_info['championName']
-                    kills = player_game_info['kills']
-                    deaths = player_game_info['deaths']
-                    assists = player_game_info['assists']
-                    kda = f"{kills}/{deaths}/{assists}"
-                    champion_id_last_played = player_game_info['championId']
-                    match_start_time = datetime.datetime.fromtimestamp(match_data['info']['gameStartTimestamp'] / 1000).strftime('%Y-%m-%d %H:%M:%S')
-            
-                    # 4. Get Champion Mastery
-                    champion_mastery_data = get_champion_mastery(puuid, champion_id_last_played, RIOT_API_KEY)
-                    mastery_level = champion_mastery_data.get('championLevel', 'N/A')
-                    mastery_points = champion_mastery_data.get('championPoints', 'N/A')
-                        
-                         data_to_sheet = [["Timestamp", "Game Name", "Tag Line", "Match ID", "Game Result", "Champion", "KDA", "Mastery Level", "Mastery Points"]]
-        # Append only if it's the first time, or make sure headers aren't re-added
-        # For simplicity here, we'll append. You might need logic to check if headers exist.
-        
-                    data_to_sheet.append([
-                        datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                        gameName,
-                        tagLine,
-                        latest_game_id,
-                        game_result,
-                        champ_played,
-                        kda,
-                        mastery_level,
-                        mastery_points
-                    ])
-                    
-                    # Write to Google Sheet
-                    sheet_result = write_to_google_sheet(data_to_sheet, spreadsheet_name, worksheet_name, service_account_info)
-            
-                    # Return success response
-                    response.status_code = 200
-                    response.headers['Content-Type'] = 'application/json'
-                    response.json({
-                        'message': 'Data fetched and logged successfully.',
-                        'gameResult': game_result,
-                        'championPlayed': champ_played,
-                        'kda': kda,
-                        'championMasteryLevel': mastery_level,
-                        'championMasteryPoints': mastery_points,
-                        'googleSheetStatus': sheet_result['status'],
-                        'googleSheetMessage': sheet_result['message']
-                    })
-                        response_body = {"message": "Riot ID and Match ID fetched, Google Sheet integration placeholder.", "riotId": f"{game_name}#{tag_line}", "puuid": puuid, "latestMatchId": latest_match_id}
-                        status_code = 200
-
-                    else:
                         status_code = 404
-                        response_body = {"error": "No match IDs found for the given Riot ID."}
+                        response_body = {'error': 'No recent matches found for this player.'}
+                    else:
+                        latest_game_id = match_ids[0]
+                        
+                        # 3. Get Detailed Match Data
+                        match_data = get_match_data(latest_game_id, RIOT_API_KEY)
+                        
+                        player_game_info = None
+                        for participant in match_data['info']['participants']:
+                            if participant['puuid'] == puuid:
+                                player_game_info = participant
+                                break
+                        
+                        if not player_game_info:
+                            status_code = 404
+                            response_body = {'error': 'Player data not found in the latest match details.'}
+                        else:
+                            # Extract game info
+                            game_result = "Victory" if player_game_info['win'] else "Defeat"
+                            champ_played = player_game_info['championName']
+                            kills = player_game_info['kills']
+                            deaths = player_game_info['deaths']
+                            assists = player_game_info['assists']
+                            kda = f"{kills}/{deaths}/{assists}"
+                            champion_id_last_played = player_game_info['championId']
+                            match_start_time = datetime.datetime.fromtimestamp(match_data['info']['gameStartTimestamp'] / 1000).strftime('%Y-%m-%d %H:%M:%S')
+                            
+                            # 4. Get Champion Mastery
+                            champion_mastery_data = get_champion_mastery(puuid, champion_id_last_played, RIOT_API_KEY)
+                            mastery_level = champion_mastery_data.get('championLevel', 'N/A')
+                            mastery_points = champion_mastery_data.get('championPoints', 'N/A')
+                            
+                            # Prepare data for Google Sheet
+                            # Define spreadsheet and worksheet names here or get from query_params
+                            spreadsheet_name = "RiotDataLog" # <<<<<<<<<<<<<<<< CHANGE THIS TO YOUR SPREADSHEET NAME
+                            worksheet_name = "MatchData"     # <<<<<<<<<<<<<<<< CHANGE THIS TO YOUR WORKSHEET NAME
+                            
+                            data_to_sheet = [
+                                datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), # Timestamp of API call
+                                game_name, # Use parsed game_name
+                                tag_line,  # Use parsed tag_line
+                                latest_game_id,
+                                game_result,
+                                champ_played,
+                                kda,
+                                mastery_level,
+                                mastery_points
+                            ]
+                            
+                            # 5. Write to Google Sheet
+                            success, sheet_message = append_to_google_sheet(data_to_sheet, GOOGLE_SERVICE_ACCOUNT_KEY, spreadsheet_name, worksheet_name)
 
+                            if success:
+                                response_body = {
+                                    'message': 'Data fetched and logged successfully.',
+                                    'gameResult': game_result,
+                                    'championPlayed': champ_played,
+                                    'kda': kda,
+                                    'championMasteryLevel': mastery_level,
+                                    'championMasteryPoints': mastery_points,
+                                    'googleSheetStatus': 'success',
+                                    'googleSheetMessage': sheet_message
+                                }
+                                status_code = 200
+                            else:
+                                status_code = 500
+                                response_body = {"error": f"Failed to append data to Google Sheet: {sheet_message}"}
+                
                 except requests.exceptions.HTTPError as e:
                     status_code = e.response.status_code if e.response is not None else 500
                     response_body = {"error": f"Riot API Error: {e.response.text if e.response else str(e)}"}
                 except Exception as e:
                     status_code = 500
-                    response_body = {"error": f"An unexpected error occurred: {str(e)}"}
+                    response_body = {"error": f"An internal server error occurred: {str(e)}"}
         else:
             # Handle other paths not explicitly defined
             status_code = 404
