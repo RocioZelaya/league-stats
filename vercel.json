@@ -8,25 +8,12 @@
     {
       "src": "api/index.py",
       "use": "@vercel/python"
-    },
-    {
-      "src": "stats-ui.html",
-      "use": "@vercel/static-build"
     }
   ],
   "routes": [
     {
       "src": "/api/fetch-data",
-      "dest": "/api/index.py",
-      "methods": ["GET"]
-    },
-    {
-      "src": "/stats-ui.html",
-      "dest": "/stats-ui.html"
-    },
-    {
-      "src": "/",
-      "dest": "/stats-ui.html"
+      "dest": "/api/index.py"
     }
   ]
 }
