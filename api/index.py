@@ -4,6 +4,7 @@ import pandas as pd
 import datetime
 import pygsheets
 import json # To parse the service account key from environment variable
+from http.server import BaseHTTPRequestHandler
 
 # --- Configuration (These will come from request or Vercel ENV) ---
 # For Vercel, sensitive info like API keys are best stored as Environment Variables.
