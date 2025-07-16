@@ -10,29 +10,23 @@
       "use": "@vercel/python"
     },
     {
-      "src": "stats-ui.html", // <-- Add this line to tell Vercel about your HTML file
-      "use": "@vercel/static-build" // <-- Use the static build official builder
+      "src": "stats-ui.html",
+      "use": "@vercel/static-build"
     }
   ],
   "routes": [
     {
       "src": "/api/fetch-data",
       "dest": "/api/index.py",
-      "methods": ["GET"] // Added for clarity, not strictly necessary if default GET is implied
+      "methods": ["GET"]
     },
     {
-      "src": "/stats-ui.html", // <-- Route requests for stats-ui.html
-      "dest": "/stats-ui.html" // <-- To serve the file itself
+      "src": "/stats-ui.html",
+      "dest": "/stats-ui.html"
     },
     {
-      "src": "/", // <-- OPTIONAL: Make stats-ui.html the default page for your Vercel app
-      "dest": "/stats-ui.html" // <-- So going to your app root shows the UI
+      "src": "/",
+      "dest": "/stats-ui.html"
     }
-    // If you plan to add other static files (images, CSS, JS files separate from HTML),
-    // you might add a general static route like this. For now, stats-ui.html is enough.
-    // {
-    //   "src": "/(.*)",
-    //   "dest": "/$1"
-    // }
   ]
 }
