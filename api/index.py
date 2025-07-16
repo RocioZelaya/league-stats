@@ -7,11 +7,11 @@ import json
 from urllib.parse import urlparse, parse_qs
 import datetime # Import for datetime.datetime.now()
 
-import pygsheets
+# Removed: import pygsheets
 
 # --- Configuration (These will come from Vercel Environment Variables) ---
 RIOT_API_KEY = os.environ.get('RIOT_API_KEY')
-GOOGLE_SERVICE_ACCOUNT_KEY = os.environ.get('GOOGLE_SERVICE_ACCOUNT_KEY')
+# Removed: GOOGLE_SERVICE_ACCOUNT_KEY = os.environ.get('GOOGLE_SERVICE_ACCOUNT_KEY')
 
 # --- Helper Functions for Riot API ---
 def get_puuid(gameName, tagLine, api_key):
@@ -38,17 +38,8 @@ def get_champion_mastery(puuid, champion_id, api_key):
     response.raise_for_status()
     return response.json()
 
-# --- Helper Function for Google Sheets ---
-def append_to_google_sheet(data_to_append, google_service_account_key_str, spreadsheet_name, worksheet_name='Sheet1'):
-    try:
-        gc = pygsheets.service_account(client_secret=json.loads(google_service_account_key_str))
-        sh = gc.open(spreadsheet_name)
-        wks = sh.worksheet_by_title(worksheet_name)
-        # append_table takes a list of lists, where each inner list is a row
-        wks.append_table(values=[data_to_append], start='A1', end=None, dimension='ROWS', overwrite=False, include_empty=False)
-        return True, "Data appended successfully."
-    except Exception as e:
-        return False, f"Failed to append to Google Sheet: {str(e)}"
+# Removed: --- Helper Function for Google Sheets ---
+# Removed: def append_to_google_sheet(...):
 
 # --- Main Vercel Handler Class ---
 class handler(BaseHTTPRequestHandler):
@@ -74,13 +65,13 @@ class handler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
-        # --- Check for RIOT_API_KEY and GOOGLE_SERVICE_ACCOUNT_KEY ---
+        # --- Check for RIOT_API_KEY ---
         if not RIOT_API_KEY:
             status_code = 500
             response_body = {"error": "RIOT_API_KEY environment variable not set."}
-        elif not GOOGLE_SERVICE_ACCOUNT_KEY:
-            status_code = 500
-            response_body = {"error": "GOOGLE_SERVICE_ACCOUNT_KEY environment variable not set."}
+        # Removed: elif not GOOGLE_SERVICE_ACCOUNT_KEY:
+        # Removed:     status_code = 500
+        # Removed:     response_body = {"error": "GOOGLE_SERVICE_ACCOUNT_KEY environment variable not set."}
         
         # --- Handle your specific API route ---
         elif path == '/api/fetch-data':
@@ -131,41 +122,25 @@ class handler(BaseHTTPRequestHandler):
                             mastery_level = champion_mastery_data.get('championLevel', 'N/A')
                             mastery_points = champion_mastery_data.get('championPoints', 'N/A')
                             
-                            # Prepare data for Google Sheet
-                            # Define spreadsheet and worksheet names here or get from query_params
-                            spreadsheet_name = "RiotDataLog" # <<<<<<<<<<<<<<<< CHANGE THIS TO YOUR SPREADSHEET NAME
-                            worksheet_name = "MatchData"     # <<<<<<<<<<<<<<<< CHANGE THIS TO YOUR WORKSHEET NAME
-                            
-                            data_to_sheet = [
-                                datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), # Timestamp of API call
-                                game_name, # Use parsed game_name
-                                tag_line,  # Use parsed tag_line
-                                latest_game_id,
-                                game_result,
-                                champ_played,
-                                kda,
-                                mastery_level,
-                                mastery_points
-                            ]
-                            
-                            # 5. Write to Google Sheet
-                            success, sheet_message = append_to_google_sheet(data_to_sheet, GOOGLE_SERVICE_ACCOUNT_KEY, spreadsheet_name, worksheet_name)
-
-                            if success:
-                                response_body = {
-                                    'message': 'Data fetched and logged successfully.',
+                            # --- Prepare the response body with all fetched data ---
+                            response_body = {
+                                'message': 'Data fetched successfully!',
+                                'riotId': f"{game_name}#{tag_line}",
+                                'puuid': puuid,
+                                'latestMatch': {
+                                    'id': latest_game_id,
                                     'gameResult': game_result,
                                     'championPlayed': champ_played,
                                     'kda': kda,
-                                    'championMasteryLevel': mastery_level,
-                                    'championMasteryPoints': mastery_points,
-                                    'googleSheetStatus': 'success',
-                                    'googleSheetMessage': sheet_message
+                                    'startTime': match_start_time
+                                },
+                                'championMastery': {
+                                    'championId': champion_id_last_played,
+                                    'level': mastery_level,
+                                    'points': mastery_points
                                 }
-                                status_code = 200
-                            else:
-                                status_code = 500
-                                response_body = {"error": f"Failed to append data to Google Sheet: {sheet_message}"}
+                            }
+                            status_code = 200
                 
                 except requests.exceptions.HTTPError as e:
                     status_code = e.response.status_code if e.response is not None else 500
