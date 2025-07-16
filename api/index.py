@@ -154,6 +154,8 @@ class handler(BaseHTTPRequestHandler):
         # --- Send the HTTP Response ---
         self.send_response(status_code)
         self.send_header('Content-type', content_type)
+        # Add the Content-Security-Policy header
+        self.send_header('Content-Security-Policy', "default-src 'self' dapond.neocities.org; script-src 'self' dapond.neocities.org; img-src 'self' dapond.neocities.org; style-src 'self' dapond.neocities.org;")
         self.end_headers()
         self.wfile.write(json.dumps(response_body).encode('utf-8'))
         return
