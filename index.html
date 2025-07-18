@@ -150,10 +150,11 @@
         <div id="errorMessage" class="error-message" style="display: none;"></div>
 
         <div id="results">
-            <h2>Last Match Report:</h2>
-            <!--
-            <p><span class="data-label">Match ID:</span> <span id="displayMatchId">Loading...</span></p>
+            <!--  
+            <span class="data-label"></span> 
+            <span id="displayMatchId"></span>
             -->
+
             <p><span class="data-label">Outcome:</span> <span id="displayGameResult">Loading...</span></p>
             <p><span class="data-label">Champ played:</span> <span id="displayChampionPlayed">Loading...</span></p>
             <p><span class="data-label">KDA:</span> <span id="displayKDA">Loading...</span></p>
@@ -178,7 +179,7 @@
         const resultsContainer = document.getElementById('results');
 
         // Display elements
-        const hardcodedRiotId = document.getElementById('hardcodedRiotId');
+        //const hardcodedRiotId = document.getElementById('hardcodedRiotId');
         //const displayMatchId = document.getElementById('displayMatchId');
         const displayGameResult = document.getElementById('displayGameResult');
         const displayChampionPlayed = document.getElementById('displayChampionPlayed');
@@ -216,7 +217,6 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    hardcodedRiotId.textContent = data.riotId || `${MY_GAME_NAME}#${MY_TAG_LINE}`;
                     
                     if (data.latestMatch) {
                         //displayMatchId.textContent = data.latestMatch.id || 'N/A';
@@ -271,7 +271,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            hardcodedRiotId.textContent = `${MY_GAME_NAME}#${MY_TAG_LINE}`; 
+            //hardcodedRiotId.textContent = `${MY_GAME_NAME}#${MY_TAG_LINE}`; 
             fetchAndDisplayMyStats();
         });
 
