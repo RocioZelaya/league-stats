@@ -1,17 +1,12 @@
-# api/index.py
-
 from http.server import BaseHTTPRequestHandler
 import os
 import requests
 import json
 from urllib.parse import urlparse, parse_qs
-import datetime # Import for datetime.datetime.now()
+import datetime
 
-# --- Configuration (These will come from Vercel Environment Variables) ---
 RIOT_API_KEY = os.environ.get('RIOT_API_KEY')
-# Removed: GOOGLE_SERVICE_ACCOUNT_KEY = os.environ.get('GOOGLE_SERVICE_ACCOUNT_KEY')
 
-# --- Helper Functions for Riot API ---
 def get_puuid(gameName, tagLine, api_key):
     link = f'https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{gameName}/{tagLine}?api_key={api_key}'
     response = requests.get(link)
@@ -36,42 +31,30 @@ def get_champion_mastery(puuid, champion_id, api_key):
     response.raise_for_status()
     return response.json()
 
-# Removed: --- Helper Function for Google Sheets ---
-# Removed: def append_to_google_sheet(...):
-
-# --- Main Vercel Handler Class ---
 class handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
-        # Default response values
         status_code = 200
         response_body = {"message": "Hello from Vercel! Use /api/fetch-data with query parameters."}
         content_type = 'application/json'
 
-        # Parse the URL to get path and query parameters
         parsed_url = urlparse(self.path)
         path = parsed_url.path
         query_params = parse_qs(parsed_url.query)
 
-        # --- Handle CORS Preflight (OPTIONS method) ---
         if self.command == 'OPTIONS':
-            self.send_response(204) # No Content
-            self.send_header('Access-Control-Allow-Origin', '*') # Adjust for production
+            self.send_response(204)
+            self.send_header('Access-Control-Allow-Origin', '*')
             self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
             self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-            self.send_header('Access-Control-Max-Age', '86400') # Cache preflight for 24 hours
+            self.send_header('Access-Control-Max-Age', '86400')
             self.end_headers()
             return
 
-        # --- Check for RIOT_API_KEY ---
         if not RIOT_API_KEY:
             status_code = 500
             response_body = {"error": "RIOT_API_KEY environment variable not set."}
-        # Removed: elif not GOOGLE_SERVICE_ACCOUNT_KEY:
-        # Removed:     status_code = 500
-        # Removed:     response_body = {"error": "GOOGLE_SERVICE_ACCOUNT_KEY environment variable not set."}
         
-        # --- Handle your specific API route ---
         elif path == '/api/fetch-data':
             game_name = query_params.get('gameName', [None])[0]
             tag_line = query_params.get('tagLine', [None])[0]
@@ -81,10 +64,8 @@ class handler(BaseHTTPRequestHandler):
                 response_body = {"error": "Missing 'gameName' or 'tagLine' query parameter."}
             else:
                 try:
-                    # 1. Fetch PUUID
                     puuid = get_puuid(game_name, tag_line, RIOT_API_KEY)
 
-                    # 2. Fetch Latest Match ID
                     match_ids = get_match_ids(puuid, RIOT_API_KEY, count=1)
                     if not match_ids:
                         status_code = 404
@@ -92,7 +73,6 @@ class handler(BaseHTTPRequestHandler):
                     else:
                         latest_game_id = match_ids[0]
                         
-                        # 3. Get Detailed Match Data
                         match_data = get_match_data(latest_game_id, RIOT_API_KEY)
                         
                         player_game_info = None
@@ -105,7 +85,6 @@ class handler(BaseHTTPRequestHandler):
                             status_code = 404
                             response_body = {'error': 'Player data not found in the latest match details.'}
                         else:
-                            # Extract game info
                             game_result = "Victory" if player_game_info['win'] else "Defeat"
                             champ_played = player_game_info['championName']
                             kills = player_game_info['kills']
@@ -115,12 +94,10 @@ class handler(BaseHTTPRequestHandler):
                             champion_id_last_played = player_game_info['championId']
                             match_start_time = datetime.datetime.fromtimestamp(match_data['info']['gameStartTimestamp'] / 1000).strftime('%Y-%m-%d %H:%M:%S')
                             
-                            # 4. Get Champion Mastery
                             champion_mastery_data = get_champion_mastery(puuid, champion_id_last_played, RIOT_API_KEY)
                             mastery_level = champion_mastery_data.get('championLevel', 'N/A')
                             mastery_points = champion_mastery_data.get('championPoints', 'N/A')
                             
-                            # --- Prepare the response body with all fetched data ---
                             response_body = {
                                 'message': 'Data fetched successfully!',
                                 'riotId': f"{game_name}#{tag_line}",
@@ -147,14 +124,11 @@ class handler(BaseHTTPRequestHandler):
                     status_code = 500
                     response_body = {"error": f"An internal server error occurred: {str(e)}"}
         else:
-            # Handle other paths not explicitly defined
             status_code = 404
             response_body = {"error": "Not Found. Use /api/fetch-data."}
         
-        # --- Send the HTTP Response ---
         self.send_response(status_code)
         self.send_header('Content-type', content_type)
-        # Add the Content-Security-Policy header
         self.send_header('Content-Security-Policy', "default-src 'self' dapond.neocities.org; script-src 'self' dapond.neocities.org; img-src 'self' dapond.neocities.org; style-src 'self' dapond.neocities.org;")
         self.end_headers()
         self.wfile.write(json.dumps(response_body).encode('utf-8'))

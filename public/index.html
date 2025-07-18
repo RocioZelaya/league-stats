@@ -162,20 +162,16 @@
     </div>
 
     <script>
-        // !! IMPORTANT !!
-        // This URL is a relative path because this HTML page and the API (api/index.py)
-        // are on the SAME Vercel domain. This is key to avoiding the Neocities CSP issue.
-        const VERCEL_API_ENDPOINT = '/api/index'; 
+        const VERCEL_API_ENDPOINT = '../api/index'; 
 
-        // !! IMPORTANT !!
-        // Replace with YOUR actual Game Name and Tag Line for this UI
-        const MY_GAME_NAME = 'remildisculpas'; // Your Game Name
-        const MY_TAG_LINE = 'rem';       // Your Tag Line
+
+        const MY_GAME_NAME = 'remildisculpas';
+        const MY_TAG_LINE = 'rem';
 
         const refreshDataButton = document.getElementById('refreshDataButton');
         const loadingMessage = document.getElementById('loadingMessage');
         const errorMessage = document.getElementById('errorMessage');
-        const resultsContainer = document.getElementById('results'); // To dim results
+        const resultsContainer = document.getElementById('results');
 
         // Display elements
         const hardcodedRiotId = document.getElementById('hardcodedRiotId');
@@ -187,21 +183,17 @@
         const displayMasteryLevel = document.getElementById('displayMasteryLevel');
         const displayMasteryPoints = document.getElementById('displayMasteryPoints');
 
-        // Helper to format Unix timestamp to a readable date/time
         function formatUnixTimestamp(unixTimestamp) {
             if (!unixTimestamp) return 'N/A';
-            // Unix timestamp from Riot API is typically in milliseconds
             const date = new Date(unixTimestamp);
-            return date.toLocaleString(); // Adjusts to local date/time format
+            return date.toLocaleString();
         }
 
         async function fetchAndDisplayMyStats() {
-            // Clear previous errors and dim results
             errorMessage.style.display = 'none';
             errorMessage.textContent = '';
             resultsContainer.classList.add('dimmed'); 
             
-            // Set initial loading states for all fields
             displayMatchId.textContent = 'Summoning...';
             displayGameResult.textContent = 'Summoning...';
             displayChampionPlayed.textContent = 'Summoning...';
@@ -210,18 +202,16 @@
             displayMasteryLevel.textContent = 'Summoning...';
             displayMasteryPoints.textContent = 'Summoning...';
 
-            loadingMessage.style.display = 'block'; // Show loading message
-            refreshDataButton.disabled = true; // Disable button during fetch
+            loadingMessage.style.display = 'block';
+            refreshDataButton.disabled = true;
 
             try {
-                // Construct the URL to your API endpoint (api/index.py)
-                // Using a relative path makes it automatically use the Vercel app's domain
                 const url = `${VERCEL_API_ENDPOINT}?gameName=${encodeURIComponent(MY_GAME_NAME)}&tagLine=${encodeURIComponent(MY_TAG_LINE)}`;
                 
                 const response = await fetch(url);
-                const data = await response.json(); // Parse the JSON response
+                const data = await response.json();
 
-                if (response.ok) { // Check if the HTTP status code is 2xx (Success)
+                if (response.ok) {
                     hardcodedRiotId.textContent = data.riotId || `${MY_GAME_NAME}#${MY_TAG_LINE}`;
                     
                     if (data.latestMatch) {
@@ -231,7 +221,6 @@
                         displayKDA.textContent = data.latestMatch.kda || 'N/A';
                         displayMatchStartTime.textContent = formatUnixTimestamp(data.latestMatch.startTime);
                     } else {
-                        // Clear match-specific fields if no latest match data
                         displayMatchId.textContent = 'No recent match data available.';
                         displayGameResult.textContent = '';
                         displayChampionPlayed.textContent = '';
@@ -243,16 +232,13 @@
                         displayMasteryLevel.textContent = data.championMastery.level || 'N/A';
                         displayMasteryPoints.textContent = data.championMastery.points || 'N/A';
                     } else {
-                        // Clear mastery-specific fields if no mastery data
                         displayMasteryLevel.textContent = 'No champion mastery data available.';
                         displayMasteryPoints.textContent = '';
                     }
 
                 } else {
-                    // Handle API errors (e.g., 404, 500 from your Vercel API)
                     errorMessage.style.display = 'block';
                     errorMessage.textContent = `Error: ${data.error || 'Unknown error occurred.'} (Status: ${response.status})`;
-                    // Clear all fields on API error
                     displayMatchId.textContent = 'Error fetching data.';
                     displayGameResult.textContent = '';
                     displayChampionPlayed.textContent = '';
@@ -263,11 +249,9 @@
                 }
 
             } catch (error) {
-                // Handle network errors (e.g., no internet connection)
                 errorMessage.style.display = 'block';
                 errorMessage.textContent = `Network Error: Could not connect to API. Please try again. (${error.message})`;
                 console.error('Fetch error:', error);
-                // Clear all fields on network error
                 displayMatchId.textContent = 'Network error.';
                 displayGameResult.textContent = '';
                 displayChampionPlayed.textContent = '';
@@ -276,20 +260,17 @@
                 displayMasteryLevel.textContent = '';
                 displayMasteryPoints.textContent = '';
             } finally {
-                loadingMessage.style.display = 'none'; // Hide loading message
-                refreshDataButton.disabled = false; // Re-enable button
-                resultsContainer.classList.remove('dimmed'); // Un-dim results
+                loadingMessage.style.display = 'none';
+                refreshDataButton.disabled = false;
+                resultsContainer.classList.remove('dimmed');
             }
         }
 
-        // Fetch data when the page loads initially
         document.addEventListener('DOMContentLoaded', () => {
-            // Display the hardcoded Riot ID immediately while data fetches
             hardcodedRiotId.textContent = `${MY_GAME_NAME}#${MY_TAG_LINE}`; 
-            fetchAndDisplayMyStats(); // Initiate the first data fetch
+            fetchAndDisplayMyStats();
         });
 
-        // Add event listener for the refresh button click
         refreshDataButton.addEventListener('click', fetchAndDisplayMyStats);
     </script>
 </body>
