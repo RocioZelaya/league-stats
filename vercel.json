@@ -1,10 +1,9 @@
 {
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "/api/index.py"
+  "build": {
+    "env": {
+      "PYTHON_VERSION": "3.9.18"
     }
-  ],
+  },
   "builds": [
     {
       "src": "api/index.py",
@@ -12,6 +11,10 @@
     }
   ],
   "routes": [
+    {
+      "src": "/api/fetch-data",
+      "dest": "/api/index.py"
+    },
     {
       "src": "/(.*)",
       "dest": "/public/$1"
