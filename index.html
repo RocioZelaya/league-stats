@@ -179,7 +179,7 @@
 
         // Display elements
         const hardcodedRiotId = document.getElementById('hardcodedRiotId');
-        const displayMatchId = document.getElementById('displayMatchId');
+        //const displayMatchId = document.getElementById('displayMatchId');
         const displayGameResult = document.getElementById('displayGameResult');
         const displayChampionPlayed = document.getElementById('displayChampionPlayed');
         const displayKDA = document.getElementById('displayKDA');
@@ -198,7 +198,7 @@
             errorMessage.textContent = '';
             resultsContainer.classList.add('dimmed'); 
             
-            displayMatchId.textContent = 'Summoning...';
+            //displayMatchId.textContent = 'Summoning...';
             displayGameResult.textContent = 'Summoning...';
             displayChampionPlayed.textContent = 'Summoning...';
             displayKDA.textContent = 'Summoning...';
@@ -219,13 +219,13 @@
                     hardcodedRiotId.textContent = data.riotId || `${MY_GAME_NAME}#${MY_TAG_LINE}`;
                     
                     if (data.latestMatch) {
-                        displayMatchId.textContent = data.latestMatch.id || 'N/A';
+                        //displayMatchId.textContent = data.latestMatch.id || 'N/A';
                         displayGameResult.textContent = data.latestMatch.gameResult || 'N/A';
                         displayChampionPlayed.textContent = data.latestMatch.championPlayed || 'N/A';
                         displayKDA.textContent = data.latestMatch.kda || 'N/A';
                         displayMatchStartTime.textContent = formatUnixTimestamp(data.latestMatch.startTime);
                     } else {
-                        displayMatchId.textContent = 'No recent match data available.';
+                        //displayMatchId.textContent = 'No recent match data available.';
                         displayGameResult.textContent = '';
                         displayChampionPlayed.textContent = '';
                         displayKDA.textContent = '';
@@ -243,7 +243,7 @@
                 } else {
                     errorMessage.style.display = 'block';
                     errorMessage.textContent = `Error: ${data.error || 'Unknown error occurred.'} (Status: ${response.status})`;
-                    displayMatchId.textContent = 'Error fetching data.';
+                    //displayMatchId.textContent = 'Error fetching data.';
                     displayGameResult.textContent = '';
                     displayChampionPlayed.textContent = '';
                     displayKDA.textContent = '';
@@ -256,7 +256,7 @@
                 errorMessage.style.display = 'block';
                 errorMessage.textContent = `Network Error: Could not connect to API. Please try again. (${error.message})`;
                 console.error('Fetch error:', error);
-                displayMatchId.textContent = 'Network error.';
+                //displayMatchId.textContent = 'Network error.';
                 displayGameResult.textContent = '';
                 displayChampionPlayed.textContent = '';
                 displayKDA.textContent = '';
