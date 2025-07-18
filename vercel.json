@@ -4,12 +4,6 @@
       "PYTHON_VERSION": "3.9.18"
     }
   },
-  "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    }
-  ],
   "routes": [
     {
       "src": "/api/fetch-data",
