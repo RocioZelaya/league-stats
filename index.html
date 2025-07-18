@@ -137,27 +137,31 @@
 </head>
 <body>
     <div class="container">
-        <h1>My Current LoL Journey</h1>
+        <h1>Da latest stats</h1>
         
+        <!--  
         <p>Keeping tabs on my League of Legends stats:</p>
         <p><span class="data-label">Riot ID:</span> <strong id="hardcodedRiotId"></strong></p>
+        -->
         
-        <button id="refreshDataButton">Fetch My Latest Stats</button>
+        <button id="refreshDataButton">Refresh</button>
 
         <div id="loadingMessage" class="loading" style="display: none;">Summoning data... please wait!</div>
         <div id="errorMessage" class="error-message" style="display: none;"></div>
 
         <div id="results">
             <h2>Last Match Report:</h2>
+            <!--
             <p><span class="data-label">Match ID:</span> <span id="displayMatchId">Loading...</span></p>
+            -->
             <p><span class="data-label">Outcome:</span> <span id="displayGameResult">Loading...</span></p>
-            <p><span class="data-label">Champion:</span> <span id="displayChampionPlayed">Loading...</span></p>
+            <p><span class="data-label">Champ played:</span> <span id="displayChampionPlayed">Loading...</span></p>
             <p><span class="data-label">KDA:</span> <span id="displayKDA">Loading...</span></p>
-            <p><span class="data-label">Game Time:</span> <span id="displayMatchStartTime">Loading...</span></p>
+            <p><span class="data-label">Duration:</span> <span id="displayMatchStartTime">Loading...</span></p>
             
-            <h3>Champion Insights:</h3>
-            <p><span class="data-label">Mastery Level:</span> <span id="displayMasteryLevel">Loading...</span></p>
-            <p><span class="data-label">Mastery Points:</span> <span id="displayMasteryPoints">Loading...</span></p>
+            <h3>Champ Mastery:</h3>
+            <p><span class="data-label">Level:</span> <span id="displayMasteryLevel">Loading...</span></p>
+            <p><span class="data-label">Points:</span> <span id="displayMasteryPoints">Loading...</span></p>
         </div>
     </div>
 

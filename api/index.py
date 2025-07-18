@@ -92,7 +92,7 @@ class handler(BaseHTTPRequestHandler):
                             assists = player_game_info['assists']
                             kda = f"{kills}/{deaths}/{assists}"
                             champion_id_last_played = player_game_info['championId']
-                            match_start_time = datetime.datetime.fromtimestamp(match_data['info']['gameStartTimestamp'] / 1000).strftime('%Y-%m-%d %H:%M:%S')
+                            match_start_time = datetime.datetime.fromtimestamp(match_data['info']['gameStartTimestamp'] / 1000).strftime('%Y-%m-%d')
                             
                             champion_mastery_data = get_champion_mastery(puuid, champion_id_last_played, RIOT_API_KEY)
                             mastery_level = champion_mastery_data.get('championLevel', 'N/A')
