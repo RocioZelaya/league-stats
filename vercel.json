@@ -14,6 +14,10 @@
     {
       "src": "/api/fetch-data",
       "dest": "/api/index.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
     }
   ]
 }
