@@ -131,7 +131,6 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.send_header('Content-Security-Policy', "default-src 'self' dapond.neocities.org; script-src 'self' dapond.neocities.org; img-src 'self' dapond.neocities.org; style-src 'self' dapond.neocities.org; frame-ancestors https://dapond.neocities.org;")
-        self.end_headers()
+        self.send_header('Content-Security-Policy', "default-src *; frame-ancestors https://dapond.neocities.org;")
         self.wfile.write(json.dumps(response_body).encode('utf-8'))
         return
