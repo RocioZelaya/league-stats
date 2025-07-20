@@ -33,6 +33,14 @@ def get_champion_mastery(puuid, champion_id, api_key):
 
 class handler(BaseHTTPRequestHandler):
 
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Access-Control-Max-Age', '86400')
+        self.end_headers()
+
     def do_GET(self):
         status_code = 200
         response_body = {"message": "Hello from Vercel! Use /api/fetch-data with query parameters."}
@@ -41,15 +49,6 @@ class handler(BaseHTTPRequestHandler):
         parsed_url = urlparse(self.path)
         path = parsed_url.path
         query_params = parse_qs(parsed_url.query)
-
-        if self.command == 'OPTIONS':
-            self.send_response(204)
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-            self.send_header('Access-Control-Max-Age', '86400')
-            self.end_headers()
-            return
 
         if not RIOT_API_KEY:
             status_code = 500
@@ -129,6 +128,9 @@ class handler(BaseHTTPRequestHandler):
         
         self.send_response(status_code)
         self.send_header('Content-type', content_type)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.send_header('Content-Security-Policy', "default-src 'self' dapond.neocities.org; script-src 'self' dapond.neocities.org; img-src 'self' dapond.neocities.org; style-src 'self' dapond.neocities.org; frame-ancestors https://dapond.neocities.org;")
         self.end_headers()
         self.wfile.write(json.dumps(response_body).encode('utf-8'))
